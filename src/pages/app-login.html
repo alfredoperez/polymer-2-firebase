@@ -1,0 +1,95 @@
+<link rel="import" href="../../../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-styles/color.html">
+
+<link rel="import" href="../styles/shared-styles.html">
+<dom-module id="app-login">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+                padding: 10px;
+
+            }
+
+            .loginCard {
+                background: lightcyan;
+                text-align: center;
+                align-content: center;;
+            }
+
+            .signInButton {
+                width: 220px;
+                text-align: left;
+                margin-bottom: 15px;
+                text-transform: none;
+                min-height: 40px;
+                border: black;
+                background-color: white;
+                box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+
+            }
+
+            .signInButton img {
+                padding: 0 8px 0 2px;
+                max-height: 15px;
+
+            }
+        </style>
+        <firebase-auth id="authElement" user="{{user}}"
+                       status-known="{{statusKnown}}" provider="google">
+        </firebase-auth>
+        <div class="card loginCard signin">
+            <h1>Proyectos</h1>
+            <br>
+            <paper-button class="signInButton" raised on-tap="login" hidden$="[[user]]"><img src="images/google.svg">Sign
+                In
+            </paper-button>
+        </div>
+    </template>
+    <script>
+        class AppLogin extends Polymer.Element {
+            static get is() {
+                return 'app-login';
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        user: {
+                            type: Object
+                        },
+                        statusKnown: {
+                            type: Object
+                        }
+                    }
+                };
+            }
+            connectedCallback() {
+                super.connectedCallback();
+                requestAnimationFrame(this._installListeners.bind(this));
+            }
+
+            _installListeners() {
+                this.$.authElement.auth
+                    .onAuthStateChanged(this._authStateChanged.bind(this));
+                 window.addEventListener('signout', this._onSignout.bind(this));
+            }
+
+            _authStateChanged() {
+                this.$.authElement.fire('auth-changed', {
+                    user: this.user
+                });
+            }
+            _onSignout() {
+                return this.$.authElement.signOut();
+            }
+            login() {
+                return this.$.authElement.signInWithPopup();
+            }
+
+           
+        }
+        customElements.define(AppLogin.is, AppLogin);
+    </script>
+</dom-module>

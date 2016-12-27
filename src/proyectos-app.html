@@ -1,0 +1,92 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../../bower_components/polymerfire/firebase-auth.html">
+
+<link rel="import" href="my-icons.html">
+<!--<link rel="import" href="pages/main-layout.html">-->
+<link rel="import" href="pages/app-login.html">
+<link rel="import" href="styles/shared-styles.html">
+
+<dom-module id="proyectos-app">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+                display: block;
+            }
+        </style>
+        <firebase-app auth-domain="proyectos-7c5e5.firebaseapp.com"
+                      database-url="https://proyectos-7c5e5.firebaseio.com"
+                      api-key="AIzaSyDIu1kYg_s9ZUREl8zJbCn8XLetDUAt2bc">
+        </firebase-app>
+        <!-- SIGN IN -->
+        <div id="signin">
+            <app-login ></app-login>
+        </div>
+
+        <!-- Main -->
+        <main-layout id="main"></main-layout>
+    </template>
+    <script>
+        class ProyectosApp extends Polymer.Element {
+            static get is() {
+                return 'proyectos-app';
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        offline: {
+                            type: Boolean,
+                            value: false
+                        },
+                        user:{
+                            type:Object
+                        },
+                        statusKnown: {
+                            type: Object
+                        }
+                    },
+                }
+            }
+            created(){
+                this.offline = navigator.onLine === false;
+            }
+            connectedCallback() {
+                super.connectedCallback();
+                requestAnimationFrame(this._installListeners.bind(this));
+            }
+            _installListeners() {
+                window.addEventListener('auth-changed', this._onAuthChanged.bind(this));
+
+                window.addEventListener('online', function () {
+                    this.offline = false;
+                }.bind(this));
+
+                window.addEventListener('offline', function () {
+                    this.offline = true;
+                }.bind(this));
+            }
+
+            _onAuthChanged(data){
+               var user = data.detail.user;
+               var el = this;
+               if(!!user){
+                   Polymer.Utils.importHref(
+                           this.resolveUrl('./pages/main-layout.html'), function(){
+                           el.$.signin.hidden = true;
+                           el.$.main.hidden = false;
+                          el.$.main.resizeHeader();
+                       });
+
+               }else{
+                   this.$.signin.hidden = false;
+                   this.$.main.hidden = true;
+               }
+            }
+        }
+        customElements.define(ProyectosApp.is, ProyectosApp);
+    </script>
+</dom-module>
